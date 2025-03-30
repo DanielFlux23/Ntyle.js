@@ -1,27 +1,70 @@
-class Ntyle {
-  constructor(elemento, { estrutura = [], color = 'gray'}) {
-    this.elem = document.getElementById(elemento);
-    this.poligonos = estrutura;
-    this.color = color;
+ class Ntyle {
+  constructor() {
+    this.styles={};
   }
   
   depurar() {}
+  
+  ntyle(config) {
+    if (config.paleta) {
+      this.palette = config.paleta;
+    }
+  }
+  
+    // Adiciona um novo estilo com propriedades dinâmicas
+  add(name, styleObj) {
+    this.styles[name] = Object.entries(styleObj).reduce((acc, [key, value]) => {
+      acc[key] = typeof value === 'function' ? value() : value;
+      return acc;
+    }, {});
+    return this;
+  }
+  
+  // Aplica estilos a elementos do DOM com uma determinada classe
+  $(className, styleNames) {
+    const elements = document.querySelectorAll(className);
+    styleNames.forEach((styleName) => {
+      if (this.styles[styleName]) {
+        elements.forEach((el) => {
+          Object.assign(el.style, this.styles[styleName]);
+        });
+      }
+    });
+    return this;
+  }
+  
+  // Renderiza os estilos no DOM injetando um <style> no <head>
+  render(styleNames) {
+    const styleTag = document.createElement('style');
+    let css = '';
+    styleNames.forEach((styleName) => {
+      if (this.styles[styleName]) {
+        const styleRules = Object.entries(this.styles[styleName])
+          .map(([key, value]) => `${key}: ${value};`)
+          .join(' ');
+        css += `.${styleName} { ${styleRules} } `;
+      }
+    });
+    styleTag.innerHTML = css;
+    document.head.appendChild(styleTag);
+  }
   
   posicao(x, y) {
     this.depurar();
     this.elem.style.transform = 'translate('+x+'px,'+y+'px)';
   }
   
-  estrutura() {
+  estrutura(elemento, { estrutura = [], color = 'gray'}) {
     this.depurar();
+    const elem = document.getElementById(elemento);
     let canvas = document.createElement("canvas");
     let ctx = canvas.getContext("2d");
-    this.elem.appendChild(canvas);
+    elem.appendChild(canvas);
     
     // Definição do polígono como uma lista de pontos [x, y]
-    const pontos = this.poligonos;
+    const pontos = estrutura;
     
-    ctx.strokeStyle = this.color; // Cor da linha
+    ctx.strokeStyle = color; // Cor da linha
     ctx.lineWidth = 3; // Espessura
     ctx.stroke(); // Desenha a linha
     
@@ -45,7 +88,7 @@ class Ntyle {
     
     
     
-    return this.elem
+    return elem
       .appendChild(document.createElement("canvas"))
       .getContext("2d");
   }
