@@ -1,26 +1,58 @@
- class Ntyle {
+class Ntyle {
   constructor() {
-    this.styles={};
+    this.styles = {};
+    this.palette = {};
+    this.themes = {}; // Todas as paletas
+    this.themeAtual = ''; // Qual está ativa agora
+    this.color = 'gray';
+    this.elem = null;
+    this._debugFn = null;
+    
   }
   
-  depurar() {}
-  
-  ntyle(config) {
-    if (config.paleta) {
-      this.palette = config.paleta;
+  depurar(msg = '', data = null) {
+    if (typeof this._debugFn === 'function') {
+      this._debugFn(msg, data);
+    } else {
+      console.debug(`[Ntyle DEBUG]: ${msg}`, data || '');
     }
   }
   
-    // Adiciona um novo estilo com propriedades dinâmicas
-  add(name, styleObj) {
-    this.styles[name] = Object.entries(styleObj).reduce((acc, [key, value]) => {
-      acc[key] = typeof value === 'function' ? value() : value;
-      return acc;
-    }, {});
+  ntyle(config = {}) {
+    const { paleta, color, debug } = config;
+    
+    if (paleta) this.palette = paleta;
+    if (color) this.color = color;
+    if (debug) this._debugFn = debug;
+    
     return this;
   }
   
-  // Aplica estilos a elementos do DOM com uma determinada classe
+  add(name, styleObj) {
+    this.styles[name] = {};
+    this._dynamicStyles = this._dynamicStyles || {};
+    
+    this._dynamicStyles[name] = {}; // Guarda as funções originais
+    
+    for (const [key, value] of Object.entries(styleObj)) {
+      const raw = typeof value === 'function' ? value : () => value;
+      
+      this._dynamicStyles[name][key] = raw;
+      
+      // Avalia o valor agora
+      let evaluated = raw();
+      
+      // Interpola da paleta, se aplicável
+      if (typeof evaluated === 'string' && this.palette[evaluated]) {
+        evaluated = this.palette[evaluated];
+      }
+      
+      this.styles[name][key] = evaluated;
+    }
+    
+    return this;
+  }
+  
   $(seletor, styleNames) {
     const elements = document.querySelectorAll(seletor);
     styleNames.forEach((styleName) => {
@@ -28,12 +60,96 @@
         elements.forEach((el) => {
           Object.assign(el.style, this.styles[styleName]);
         });
+      } else {
+        this.depurar(`Estilo "${styleName}" não encontrado.`);
       }
     });
     return this;
   }
   
-  // Renderiza os estilos no DOM injetando um <style> no <head>
+  watch(trigger, callback) {
+    this._watchers = this._watchers || [];
+    
+    this._watchers.push({ trigger, callback });
+    
+    // Se for algo reconhecível, já conecta
+    if (trigger === 'resize') {
+      window.addEventListener('resize', callback);
+    }
+    
+    if (trigger === 'theme') {
+      const mq = window.matchMedia('(prefers-color-scheme: dark)');
+      mq.addEventListener('change', callback);
+    }
+    
+    return this;
+  }
+  
+  destroy() {
+    if (!this._watchers) return;
+    
+    this._watchers.forEach(({ trigger, callback }) => {
+      if (trigger === 'resize') {
+        window.removeEventListener('resize', callback);
+      }
+      
+      if (trigger === 'theme') {
+        const mq = window.matchMedia('(prefers-color-scheme: dark)');
+        mq.removeEventListener('change', callback);
+      }
+    });
+    
+    this._watchers = [];
+  }
+  
+  definirTemas(temasObj, temaInicial = null) {
+    this.themes = temasObj;
+    
+    if (temaInicial && this.themes[temaInicial]) {
+      this.setarTema(temaInicial);
+    }
+    
+    return this;
+  }
+  
+  setarTema(nomeTema) {
+    if (!this.themes[nomeTema]) {
+      this.depurar(`Tema "${nomeTema}" não encontrado.`, this.themes);
+      return this;
+    }
+    
+    this.palette = this.themes[nomeTema];
+    this.themeAtual = nomeTema;
+    this.update();
+    
+    this.depurar(`Tema alterado para: ${nomeTema}`);
+    return this;
+  }
+  
+  update() {
+    if (!this._dynamicStyles) return this;
+    
+    for (const [styleName, props] of Object.entries(this._dynamicStyles)) {
+      const newStyle = {};
+      for (const [key, fn] of Object.entries(props)) {
+        let value = fn();
+        if (typeof value === 'string' && this.palette[value]) {
+          value = this.palette[value];
+        }
+        newStyle[key] = value;
+      }
+      this.styles[styleName] = newStyle;
+      
+      // Reaplica no DOM
+      document.querySelectorAll(`.${styleName}`).forEach((el) => {
+        Object.assign(el.style, newStyle);
+      });
+    }
+    
+    this.depurar('Estilos atualizados dinamicamente.');
+    return this;
+  }
+  
   render(styleNames) {
     const styleTag = document.createElement('style');
     let css = '';
@@ -43,53 +159,22 @@
           .map(([key, value]) => `${key}: ${value};`)
           .join(' ');
         css += `.${styleName} { ${styleRules} } `;
+      } else {
+        this.depurar(`Estilo "${styleName}" não encontrado para renderização.`);
       }
     });
     styleTag.innerHTML = css;
     document.head.appendChild(styleTag);
+    return this;
   }
   
-  posicao(x, y) {
-    this.depurar();
-    this.elem.style.transform = 'translate('+x+'px,'+y+'px)';
-  }
-  
-  estrutura(elemento, { estrutura = [], color = 'gray'}) {
-    this.depurar();
-    const elem = document.getElementById(elemento);
-    let canvas = document.createElement("canvas");
-    let ctx = canvas.getContext("2d");
-    elem.appendChild(canvas);
-    
-    // Definição do polígono como uma lista de pontos [x, y]
-    const pontos = estrutura;
-    
-    ctx.strokeStyle = color; // Cor da linha
-    ctx.lineWidth = 3; // Espessura
-    ctx.stroke(); // Desenha a linha
-    
-
-      if (pontos.length < 2) return; // Precisa de pelo menos dois pontos
-      
-      ctx.beginPath();
-      ctx.moveTo(pontos[0][0], pontos[0][1]); // Vai para o primeiro ponto
-      
-      // Percorre os pontos e cria linhas entre eles
-      for (let i = 1; i < pontos.length; i++) {
-        ctx.lineTo(pontos[i][0], pontos[i][1]);
-      }
-
-      ctx.closePath(); // Fecha o polígono
-      ctx.strokeStyle = 'black'; // Cor da borda
-      ctx.lineWidth = 2; // Espessura da linha
-      ctx.fillStyle = this.color; // Cor de preenchimento
-      ctx.fill(); // Preenche o polígono
-      ctx.stroke(); // Desenha as bordas
-    
-    
-    
-    return elem
-      .appendChild(document.createElement("canvas"))
-      .getContext("2d");
+  posicao(elem, x = 0, y = 0) {
+    if (!elem || !elem.style) {
+      this.depurar('Elemento inválido passado para posicao()', elem);
+      return;
+    }
+    this.depurar(`Aplicando translate(${x}px, ${y}px) ao elemento`, elem);
+    elem.style.transform = `translate(${x}px, ${y}px)`;
+    return this;
   }
 }
