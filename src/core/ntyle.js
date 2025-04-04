@@ -21,8 +21,8 @@
   }
   
   // Aplica estilos a elementos do DOM com uma determinada classe
-  $(className, styleNames) {
-    const elements = document.querySelectorAll(className);
+  $(seletor, styleNames) {
+    const elements = document.querySelectorAll(seletor);
     styleNames.forEach((styleName) => {
       if (this.styles[styleName]) {
         elements.forEach((el) => {
