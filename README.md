@@ -1,23 +1,16 @@
 # Ntyle.js
 
-Ntyle.js — O estilo sob seu controle. Literalmente.
 
-Ntyle.js é uma biblioteca JavaScript leve, modular e sem frescura, projetada para transformar a forma como você lida com estilos e temas na web. Chega de folhas de estilo engessadas e mudanças manuais de classe — aqui o poder está no código.
+**Ntyle.js** é uma biblioteca JavaScript leve, modular e sem frescura, projetada para transformar a forma como você lida com estilos e temas na web. Chega de folhas de estilo engessadas e mudanças manuais de classe — aqui o poder está no código.
 
-Com Ntyle, você define paletas, alterna temas dinâmicos, estiliza componentes em tempo real e centraliza o controle visual da sua aplicação de forma intuitiva e escalável. Ele foi feito para devs que querem um design reativo e sob demanda, sem a bagunça do CSS inline nem o peso dos frameworks gigantes.
+> "O estilo sob seu controle. Literalmente."
 
-Por que usar o Ntyle.js?
+#  Características
 
-Criação e gerenciamento de temas com uma única linha
-
-Paletas de cores reutilizáveis e parametrizadas
-
-Aplicação de estilos direto via JS, com performance
-
-Sintaxe limpa, sem mágica obscura
-
-Feito para SPAs, PWAs, e até para aquele seu projeto pessoal estiloso
-
+- Inicialização Simplificada
+- Configuração Flexível
+- Suporte a Múltiplos Temas
+- Reatividade na Manipulação de Estilos
 
 ---
 
