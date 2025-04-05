@@ -3,7 +3,7 @@ class Ntyle {
     this.styles = {};
     this.palette = {};
     this.themes = {}; // Todas as paletas
-    this.themeAtual = ''; // Qual está ativa agora
+    this.mytheme = ''; // Qual está ativa agora
     this.color = 'gray';
     this.elem = null;
     this._debugFn = null;
@@ -119,7 +119,7 @@ class Ntyle {
     }
     
     this.palette = this.themes[nomeTema];
-    this.themeAtual = nomeTema;
+    this.mytheme = nomeTema;
     this.update();
     
     this.depurar(`Tema alterado para: ${nomeTema}`);
