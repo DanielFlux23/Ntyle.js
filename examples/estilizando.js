@@ -10,7 +10,7 @@ nty.definirTemas({
   },
   noite: {
     ceu: '#2c3e50', // azul escuro
-    sol: '#f39c12', // laranja suave
+    sol: 'white', // laranja suave
     montanha: '#2d3436', // cinza escuro
     grama: '#27ae60' // verde escuro
   }
