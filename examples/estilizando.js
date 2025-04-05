@@ -1,5 +1,7 @@
 const nty = new Ntyle();
 
+nty.depurar = true;
+
 // Define paletas para diferentes partes do dia
 nty.definirTemas({
   dia: {

@@ -7,14 +7,16 @@ class Ntyle {
     this.color = 'gray';
     this.elem = null;
     this._debugFn = null;
-    
+    this.depura = false;
   }
   
   depurar(msg = '', data = null) {
+    if (this.depura) {
     if (typeof this._debugFn === 'function') {
       this._debugFn(msg, data);
     } else {
       console.debug(`[Ntyle DEBUG]: ${msg}`, data || '');
+      }
     }
   }
   
